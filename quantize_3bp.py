@@ -2,7 +2,7 @@ from PIL import Image
 import numpy as np
 from sklearn.cluster import KMeans
 
-def tile_and_quantize_image(image_path, tile_size=8, num_tiles=64, num_colors=16):
+def tile_and_quantize_image(image_path, tile_size=8, num_tiles=64, num_colors=16, dither_type=1):
     # Open the image
     img = Image.open(image_path)
     img = img.convert('RGB')
@@ -36,8 +36,8 @@ def tile_and_quantize_image(image_path, tile_size=8, num_tiles=64, num_colors=16
             new_img_array[y:y + tile_size, x:x + tile_size] = tile
             tile_idx += 1
 
-    # Dithering matrix for ordered dithering
-    bayer_matrix_8x8 = np.array([
+    # Dithering matrices
+    bayer_matrix_8x8_ordered = np.array([
         [0, 48, 12, 60, 3, 51, 15, 63],
         [32, 16, 44, 28, 35, 19, 47, 31],
         [8, 56, 4, 52, 11, 59, 7, 55],
@@ -47,6 +47,36 @@ def tile_and_quantize_image(image_path, tile_size=8, num_tiles=64, num_colors=16
         [10, 58, 6, 54, 9, 57, 5, 53],
         [42, 26, 38, 22, 41, 25, 37, 21]
     ]) / 64.0
+
+    bayer_matrix_8x8_horizontal = np.tile(np.linspace(0, 1, 8), (8, 1))
+    bayer_matrix_8x8_vertical = np.tile(np.linspace(0, 1, 8).reshape(8, 1), (1, 8))
+    bayer_matrix_8x8_no_dithering = np.zeros((8, 8))
+
+    clustered_dot_matrix_8x8 = np.array([
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 3, 3, 3, 3, 3, 3, 0],
+        [0, 3, 6, 6, 6, 6, 3, 0],
+        [0, 3, 6, 9, 9, 6, 3, 0],
+        [0, 3, 6, 9, 9, 6, 3, 0],
+        [0, 3, 6, 6, 6, 6, 3, 0],
+        [0, 3, 3, 3, 3, 3, 3, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0]
+    ]) / 9.0
+
+    # Adjust the horizontal and vertical matrices to have the same value in each row/column
+    for i in range(8):
+        bayer_matrix_8x8_horizontal[i, :] = bayer_matrix_8x8_ordered[i, 0]
+        bayer_matrix_8x8_vertical[:, i] = bayer_matrix_8x8_ordered[0, i]
+
+    dither_matrices = {
+        0: bayer_matrix_8x8_no_dithering,
+        1: bayer_matrix_8x8_ordered,
+        2: bayer_matrix_8x8_horizontal,
+        3: bayer_matrix_8x8_vertical,
+        4: clustered_dot_matrix_8x8
+    }
+
+    dither_matrix = dither_matrices.get(dither_type, bayer_matrix_8x8_ordered)
 
     def ordered_dither(image_array, dither_matrix):
         height, width, _ = image_array.shape
@@ -61,7 +91,7 @@ def tile_and_quantize_image(image_path, tile_size=8, num_tiles=64, num_colors=16
         return dithered_image
 
     # Apply ordered dithering
-    dithered_img_array = ordered_dither(new_img_array, bayer_matrix_8x8)
+    dithered_img_array = ordered_dither(new_img_array, dither_matrix)
 
     # Flatten the dithered image array for color quantization
     pixels = dithered_img_array.reshape(-1, 3)
@@ -90,11 +120,11 @@ def tile_and_quantize_image(image_path, tile_size=8, num_tiles=64, num_colors=16
 
 # Define the main function
 def main():
-    input_image_path = 'tiny arnold IN.png'
+    input_image_path = 'FG4 IN.png'
     output_image_path = 'output_dithered_quantized_image.png'
 
     # Tile and quantize the image, then save the output image
-    quantized_image = tile_and_quantize_image(input_image_path, tile_size=8, num_tiles=1024, num_colors=16)
+    quantized_image = tile_and_quantize_image(input_image_path, tile_size=8, num_tiles=16, num_colors=16, dither_type=3)
     quantized_image.save(output_image_path)
     print(f'Dithered and quantized image saved as {output_image_path}')
 
