@@ -16,6 +16,12 @@ Tiles are NOT exported. The output is an image, but made up of tiles.
 * FG1 IN - an image of forest from above. The image tiles, but there's no tiling within the image.
   * FG1 out - 64 tiles
   * FG1 3bp - 64 tiles, 16 colours all from the Mega Drive palette
+* FG4 IN - similar to FG1 but with adjusted levels. Doesn't affect anything here; just the version I was playing with when I made an edit to these scripts
+  * FG4 out H - horizontal style dithering
+  * FG4 out V - vertical style dithering
+  * FG4 out - bayer dithering
+  * FG4 out 0 - no dithering. The triangles aren't from the dithering. It's just a pattern than can occur with tile counts
+  * FG4 out CD - clistered dot dithering
 *  BG1 IN - A top down tiling image of forest floor showing paths and buildings. There are several tiles shown. Those tiles are multiples of 8 in size, so condense efficiently using these scripts
   * Same outputs as previous. Notice how the tiles repeat.
 * tin arnold IN - an turnaround image of a 3D figure
@@ -44,3 +50,4 @@ I use Windows. YMMV
   * `tile_size` with and height of tiles
   * `num_tiles` number of unique tiles
   * `num_colors` (`quantize_3bp.py` only) palette size
+  * `dither_type` (`quantize_3bp.py` only) dithering style (see FG4 images)
