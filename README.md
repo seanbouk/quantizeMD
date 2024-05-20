@@ -10,6 +10,7 @@ Tiles are NOT exported. The output is an image, but made up of tiles.
 ### Scripts
  - quantize_image.py - just quantizes for tile count. Output is RGB. Use this is you don't want to limit colours, or want to reduce the palette as part of your own post processing
  - quantize_3bp.py - as above, but will also reduce palette, dither the image, and snap the colours to 3 bits per channel. Use this is you want to spit out Mega Drive ready images
+ - colour_split.py - splits an image into 2, so you can have an up to 31 colour image split across to 16 colour palettes (with the 32nd colour used as the mask colour)
 
 ### Image Examples
 
@@ -24,8 +25,12 @@ Tiles are NOT exported. The output is an image, but made up of tiles.
   * FG4 out CD - clistered dot dithering
 *  BG1 IN - A top down tiling image of forest floor showing paths and buildings. There are several tiles shown. Those tiles are multiples of 8 in size, so condense efficiently using these scripts
   * Same outputs as previous. Notice how the tiles repeat.
-* tin arnold IN - an turnaround image of a 3D figure
+* tiny arnold IN - an turnaround image of a 3D figure
   * outputs at 16, 32, 64, 128, 256, 512, and 1024 tiles to show the effect of reducing tile count as an image compression technique. These are all created using quantize_3bp at 16 colours.
+* parrot clown IN - an image of a parrot and a clown. It's very colourful.
+  * parrot clown OUT - 1024 tiles, 31 colours (actually 30, because of rounding when it was applied to the MD hardware palette)
+  * background_image - First 16 colours. Use this as the background
+  * foreground_image - Remaining colours, plus magenta. Use magenta as the mask (set it to index 0)
 
 
 ## Installation
@@ -51,3 +56,6 @@ I use Windows. YMMV
   * `num_tiles` number of unique tiles
   * `num_colors` (`quantize_3bp.py` only) palette size
   * `dither_type` (`quantize_3bp.py` only) dithering style (see FG4 images)
+ 
+
+The only thing you might want to change in `colour_split.py` is the mask colour. It's currently magenta, but if you have magenta in your image you'll want something else. Look for `foreground_replacement_color`.
